@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jan 26 17:14:31 2022
+Created on Thu Jan 27 12:30:08 2022
 
 @author: ilariacaporali
 """
@@ -9,25 +9,97 @@ Created on Wed Jan 26 17:14:31 2022
 import numpy as np
 import matplotlib.pyplot as plt
 
-m, r = np.genfromtxt('exoplanet.eu_catalog.csv', dtype=float, delimiter=',', skip_header=1, usecols=(2,8), unpack=True )
+tmin = 0
+tmax = 5
+h = 0.01
+N = int(tmax/h)
 
-plt.scatter(m, r,label='exoplanet', marker='h', color='green' )
-plt.xlabel('$M \; [M_{jupiter}]$')
-plt.xlabel('$R \; [R_{jupiter}]$')
+m = np.array([6., 2.])
+
+x10 = np.array([0.,0., 0.]) 
+x20 = np.array([0.,2., 0.]) 
+x0 = np.array([x10, x20])
+
+x = np.zeros((N, 2, 3), float)
+x[0,:,:] = x0
+
+v10 = np.array([0.,0., 0.]) 
+v20 = np.array([2.,0., 0.]) 
+v0 = np.array([v10, v20])
+
+v = np.zeros((N, 2, 3), float)
+v[0,:,:] = v0
+
+a = np.zeros((N, 2, 3), float)
+
+for n in range(N-1):
+    
+    for i in range(2):
+        for j in range(2):
+            if(j!=i):
+                a[n,i,:] = -m[j]*(x[n,i,:]-x[n,j,:])/np.linalg.norm(x[n,i,:]-x[n,j,:])**3
+    
+    x[n+1,:,:] = x[n,:,:] + h*v[n,:,:] + 0.5*h*h*a[n,:,:]
+    
+    for i in range(2):
+        for j in range(2):
+            if(j!=i):
+                a[n+1,i,:] = -m[j]*(x[n+1,i,:]-x[n+1,j,:])/np.linalg.norm(x[n+1,i,:]-x[n+1,j,:])**3
+                
+    v[n+1,:,:] = v[n,:,:] + 0.5*h*( a[n,:,:] + a[n+1,:,:] )
+    
+xcm = np.zeros((N,3), float)
+xc = np.zeros((N, 2, 3), float)
+
+for i in range(2):
+    xcm[:,:] += m[i]*x[:,i,:]/sum(m)
+    
+xc[:,0,:] = x[:,0,:] - xcm
+xc[:,1,:] = x[:,1,:] - xcm
+'''  
+plt.plot(xc[:,0,0], xc[:,0,1], label='body 1', color='green')
+plt.plot(xc[:,1,0], xc[:,1,1], label='body 2', color='purple')
 plt.legend()
 plt.show()
+'''
+K = np.zeros(N, float)
+U = np.zeros(N, float)
+E = np.zeros(N, float)
 
-print(len(m))
+for n in range(N):
+    for i in range(2):
+        K[n] += 0.5*m[i]*np.linalg.norm(v[n,i,:])**2
+        for j in range(2):
+            if(j!=i):
+                U[n] += -m[i]*m[j]/np.linalg.norm(x[n,i,:]-x[n,j,:])
+                
+E = U + K
 
-M=[]
-R=[]
+E = abs((E - E[0])/E[0])
+'''
+plt.plot(E, label='energy')
+plt.xlabel('time')
+plt.ylabel('Energy')
+plt.legend()
+plt.show()
+'''
+L = np.zeros(N, float)
 
-for i in range(len(m)):
-    if((np.isfinite(m[i])==True) and (np.isfinite(r[i])==True)):
-        M.append(m[i])
-        R.append(r[i])
+for n in range(N):#time
+    for k in range(2):#body
+        L[n] += m[k]* np.linalg.norm(v[n,k,0]*x[n,k,1] - v[n,k,1]*x[n,k,0])
         
-M = np.array(M)
-R = np.array(R)
-print(len(M))
-print(len(R))
+L = abs((L - L[0])/L[0])
+                    
+plt.plot(L, label='angular momentum')
+plt.xlabel('time')
+plt.ylabel('Angular momentum')
+plt.legend()
+plt.show()
+            
+            
+
+
+            
+
+                

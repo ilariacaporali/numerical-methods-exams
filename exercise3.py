@@ -1,112 +1,41 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jan 26 15:54:43 2022
+Created on Thu Jan 27 12:08:06 2022
 
 @author: ilariacaporali
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
-from astropy import constants as const
 
-G=1.18482e-4 
+l0 = np.array([ 7., 5.,  -5., 10., 2., 1.])
+l1 = np.array([ 1., 1.,  -2.,  4., 3., 0.])
+l2 = np.array([ 1., 1., 12.,  4., 3., -9.])
+l3 = np.array([ 1., -3., - 3., 15., 1., 1.])
+l4 = np.array([ 1., -2.,  3.,  4., 5., 6.])
+l5 = np.array([ 1., -1.,  1.,  -2., 3., 9.])
 
-m = np.genfromtxt('five_bodies.txt', dtype=float, usecols=(6), unpack=True)
-x0 = np.genfromtxt('five_bodies.txt', dtype=float, usecols=(0,1,2), unpack=True)
-v0 = np.genfromtxt('five_bodies.txt', dtype=float, usecols=(3,4,5), unpack=True)
+A = np.array([l0, l1, l2, l3, l4, l5 ])
 
-tmin = 0
-tmax = 3
-h = 1e-2
-N = int(tmax/h)
+b = np.array([ 7., -1., 4., 4., 12., -2.])
 
-x = np.zeros((N,3,5), float)
-v = np.zeros((N,3,5), float)
-a = np.zeros((N,3,5), float)
+x = np.linalg.solve(A, b)
 
-x[0,:,:] = x0
-v[0,:, :] = v0
+print(x)
 
-for n in range(N-1):
-    
-    for i in range(5):
-        for j in range(5):
-            if (j!=i):
-                a[n,:,i] += -m[j]* ( x[n,:,i] - x[n,:,j] ) / (np.linalg.norm(x[n,:,i] - x[n,:,j]))**3
+xguess = np.ones(len(b), float)
 
-    a[n,:,:] = G*a[n,:,:]
-    
-    x[n+1,:,:] = x[n,:,:] + h*v[n,:,:] + 0.5*h*h*a[n,:,:]
-    
-    for i in range(5):
-        for j in range(5):
-            if (j!=i):
-                a[n+1,:,i] += - m[j]* ( x[n+1,:,i] - x[n+1,:,j] ) / (np.linalg.norm(x[n+1,:,i] - x[n+1,:,j]))**3
+xsol = np.zeros(len(b), float)
 
-    a[n+1,:,:] = G*a[n+1,:,:]
-    
-    v[n+1,:,:] = v[n,:,:] + 0.5*h*( a[n,:,:] + a[n+1,:,:] )    
+tol = 1e-7
 
-cm = np.zeros((N,3), float)
-
-for i in range(5):
-    cm[:,:] += (m[0]*x[:,:,0] + m[1]*x[:,:,1] + m[2]*x[:,:,2] + m[3]*x[:,:,3] + m[4]*x[:,:,4])/sum(m)
-    #cm[:,:] += m[i]*x[:,:,i]/sum(m)
-    
-print(cm)
-
-for i in range(5):
-    x[:,:,i] = x[:,:,i] - cm   
-    
-fig, ax = plt.subplots()
-    
-for i in range(5):
-    stringg='body ' + str(i+1)
-    ax.plot(x[:,0,i], x[:,1,i], label=stringg)
-    
-ax.legend()    
-fig.show()
-
-E = np.zeros(N, float)
-K = np.zeros(N, float)
-U = np.zeros(N, float)
-
-for n in range(N):
-    for i in range(5):
-        K[n] += 0.5*m[i]*np.linalg.norm(v[n,:,i])**2
-        for j in range(5):
-            if(j>i):
-                U[n] += -m[i]*m[j]*np.linalg.norm(x[n,:,i]-x[n,:,j])
-                
-U = G*U
-E = K + U
-
-L = np.zeros((N,3), float)
-Lmod = np.zeros(N, float) 
-
-
-
-for n in range(N):
-    for i in range(5):
-        L[n,:] += m[i]*np.cross(x[n,:,i],v[n,:,i] )
-    Lmod[n] = np.linalg.norm(L[n,:])
-
- 
-fig2, ax2 = plt.subplots()
-
-ax2.plot(Lmod, label='angular momentum')
-ax2.plot(E, label='energy')
-ax2.set_xlabel('t')
-ax2.set_ylabel('E/L')
-ax2.legend()
-fig2.show()
-
+while(np.linalg.norm(xguess-xsol)>tol):
+    for i in range(len(b)):
+        xguess[i] = xsol[i]
+        summ=0
+        for j in range(len(b)):
+            if(j!=i):
+                summ += A[i,j]*x[j]
+        xsol[i] = (b[i] - summ) / A[i,i]
         
-
-
-
-
-
-
-
+print(xsol)
