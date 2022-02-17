@@ -1,41 +1,54 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jan 27 12:08:06 2022
+Created on Fri Jan 28 09:48:30 2022
 
 @author: ilariacaporali
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
+import astropy.constants as constants
 
-l0 = np.array([ 7., 5.,  -5., 10., 2., 1.])
-l1 = np.array([ 1., 1.,  -2.,  4., 3., 0.])
-l2 = np.array([ 1., 1., 12.,  4., 3., -9.])
-l3 = np.array([ 1., -3., - 3., 15., 1., 1.])
-l4 = np.array([ 1., -2.,  3.,  4., 5., 6.])
-l5 = np.array([ 1., -1.,  1.,  -2., 3., 9.])
+def f(x):
+    return 5*np.exp(-x) + x -5
 
-A = np.array([l0, l1, l2, l3, l4, l5 ])
+def bisection(x1, x2, tol):
+    
+    while(abs(x1-x2)>tol):
+        midpoint = 0.5*(x1+x2)
+        if (f(x1)>0 and f(midpoint)>0) or (f(x1)<0 and f(midpoint)<0):
+            x1 = midpoint
+        else:
+            x2 = midpoint
+            
+    xsol = 0.5*(x1+x2)
+    print(xsol)
+    return xsol
 
-b = np.array([ 7., -1., 4., 4., 12., -2.])
+    
 
-x = np.linalg.solve(A, b)
+#main
 
-print(x)
+tol = 1e-5
 
-xguess = np.ones(len(b), float)
+x = np.linspace(-1, 6, 1000)
+y = f(x)
+zeross=np.zeros(1000, float)
 
-xsol = np.zeros(len(b), float)
+x1sol =  bisection(-1, 1, tol)
+x2sol =  bisection(4, 6, tol) #i think only this has a physical meaning
 
-tol = 1e-7
 
-while(np.linalg.norm(xguess-xsol)>tol):
-    for i in range(len(b)):
-        xguess[i] = xsol[i]
-        summ=0
-        for j in range(len(b)):
-            if(j!=i):
-                summ += A[i,j]*x[j]
-        xsol[i] = (b[i] - summ) / A[i,i]
-        
-print(xsol)
+print('b_wien (astropy) = ', constants.b_wien)
+
+b = constants.h * constants.c / (constants.k_B * x2sol) 
+
+print('b_wien (calculated) = ', b )
+
+
+plt.plot(x, y, color='blue')
+plt.plot(x, zeross, color='red', linestyle=':')
+plt.show()
+
+

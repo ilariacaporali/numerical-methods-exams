@@ -1,65 +1,37 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jan 27 11:14:47 2022
+Created on Fri Jan 28 09:09:48 2022
 
 @author: ilariacaporali
 """
 
+def func(x, a, b):
+    return a + b*x
+
+#main
+
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.colors as colors
+import scipy.optimize as opt
 
-m1_raw, m1_type_raw, m2_raw, m2_type_raw = np.genfromtxt('SEVN_output.csv', delimiter=',', dtype=float, usecols=(2,7,9,14), skip_header=1, unpack=True)
+m_bh, t_sn = np.genfromtxt('data_black_holes.txt', dtype = float, skip_header=3, usecols=(3,19), unpack=True)
 
-m1 = []
-m2 = []
-m1_type=[]
-m2_type=[]
+log10_m = np.log10(m_bh)
+log10_t = np.log10(t_sn)
 
-for i in range(len(m1_raw)):
-    if (np.isfinite(m1_raw[i])==True and np.isfinite(m2_raw[i])==True):
-        m1.append(m1_raw[i])
-        m2.append(m2_raw[i])
-        m1_type.append(m1_type_raw[i])
-        m2_type.append(m2_type_raw[i])
-        
-m1 = np.array(m1)
-m2 = np.array(m2)
-m1_type = np.array(m1_type)
-m2_type = np.array(m2_type)
-        
-print('# of BSs: ', len(m1))
+popt, pcov = opt.curve_fit(func, log10_m, log10_t)
 
-'''
-plt.scatter(m1, m2, label='BSs', marker='*', color='black')
-plt.xlabel('$M_1 \; [M_{\odot}]$')
-plt.ylabel('$M_2 \; [M_{\odot}]$')
+print('opt.curve_fit values : y = a + b*x')
+print('a = ', popt[0], ' \pm ', pcov[0,0])
+print('b = ', popt[1], ' \pm ', pcov[1,1])
+
+x = np.linspace(min(log10_m), max(log10_m), 10000)
+y = func(x, popt[0], popt[1])
+
+plt.scatter(log10_m, log10_t, marker='*', color='black', label='data')
+plt.plot(x, y, color='purple', label='y=a+bx')
+plt.xlabel('$log_{10}(M_{BH}) \; \;  [M_{\odot}] $')
+plt.ylabel('$log_{10}(t_{SN}) \; \;  [Myr] $')
 plt.legend()
 plt.show()
-'''
-
-plt.hist2d(m1, m2, bins=50, norm=colors.LogNorm())
-plt.xlabel('$M_1 \; [M_{\odot}]$')
-plt.ylabel('$M_2 \; [M_{\odot}]$')
-cbar = plt.colorbar()
-cbar.set_label('#BSs')
-plt.show()
-
-m1_BH = []
-m2_BH = []
-
-for i in range(len(m1)):
-    if (m1_type[i] == 6 and m2_type[i] == 6):
-        m1_BH.append(m1_type[i])
-        m2_BH.append(m2_type[i])
-        
-m1_BH = np.array(m1_BH)
-m2_BH = np.array(m2_BH)
-print('# BSs with both BH remnants : ', len(m1_BH))
-
-
-
-
-
-

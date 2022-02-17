@@ -1,52 +1,69 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jan 27 11:29:29 2022
+Created on Fri Jan 28 09:24:57 2022
 
 @author: ilariacaporali
 """
 
 import numpy as np
+from numpy.random import random, seed 
 import matplotlib.pyplot as plt
-from numpy.random import random, seed
 
-seed(137)
+seed(12137)
 
-def sphere(x, y, z):
-    return x*x + y*y + z*z
-
-#main
-
-N =int(1e4)
+N = int(1e5)
 
 a = random(N)
 b = random(N)
 c = random(N)
 
-xr = a*10 - 5
-yr = b*10 - 5
-zr = c*10 - 5
+xr = 2*a - 1.
+yr = b - 0.5
+zr = c - 0.5
 
-x = []
-y = []
-z = []
+xx = []
+yy = []
+zz = []
 
 for i in range(N):
-    if( sphere(xr[i], yr[i], zr[i]) < 25 ):
-        x.append(xr[i])
-        y.append(yr[i])
-        z.append(zr[i])
+    if ( (xr[i]**2 + yr[i]**2 + zr[i]**2)**2 <= (xr[i]**2 - yr[i]**2 - zr[i]**2)  ):
+        xx.append(xr[i])
+        yy.append(yr[i])
+        zz.append(zr[i])
         
-x = np.array(x)
-y = np.array(y)
-z = np.array(z)
-'''
-plt.scatter(x, y, marker='*')
-plt.show()
+xx = np.array(xx)
+yy = np.array(yy)
+zz = np.array(zz)
 
-'''
 fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
-ax.scatter(x, y, z, marker='*', label='random number inside a sphere')
-plt.legend()
+
+ax.scatter(xx, yy, zz, marker='*', color='green')
+
 plt.show()
+
+#integral
+
+M = int(1e5)
+
+ai = random(M)
+bi = random(M)
+ci = random(M)
+
+xi = 2*ai - 1.
+yi = bi - 0.5
+zi = ci - 0.5
+
+k = 0 #counter
+
+for i in range(M):
+    if ( (xi[i]**2 + yi[i]**2 + zi[i]**2)**2 <= (xi[i]**2 - yi[i]**2 - zi[i]**2)  ):
+        k += 1
+        
+I = k*2/M
+
+print(I)
+
+
+        
