@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Jan 25 09:37:55 2022
+Created on Wed Jan 26 09:25:07 2022
 
 @author: ilariacaporali
 """
@@ -10,26 +10,32 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 
-m1, m2 = np.genfromtxt('BBH_first_gen.txt', dtype = 'float', skip_header=1, usecols=(1,2), unpack=True)
+M, R = np.genfromtxt('BBH_EAGLE25Mpc_z01.txt', dtype='float', skip_header=1, usecols=(0,1), unpack=True)
+
+
 '''
-plt.scatter(m2, m1, marker='*', color='black', label='BBH mergers')
-plt.xlabel('$M_2 \; \; [M_{\odot}]$')
-plt.ylabel('$M_1 \; \; [M_{\odot}]$')
-plt.legend()
+plt.scatter(M, R, marker='*', color='black')
+plt.xscale('log')
+plt.yscale('log')
+plt.xlabel('$ M \;  [M_{\odot}] $')
+plt.ylabel('$ R_{BBH} \; [Gyr^{-1]}$')
 plt.show()
 '''
+log_M = np.log10(M)
+log_R = np.log10(R)
 
-plt.hist2d(m2, m1, bins=50, norm=colors.LogNorm(), )
-cbar=plt.colorbar()
-cbar.set_label('#BBH mergers per cell')
-plt.xlabel('$M_2 \; \; [M_{\odot}]$')
-plt.ylabel('$M_1 \; \; [M_{\odot}]$')
+plt.hist2d(log_M, log_R, bins =50, norm = colors.LogNorm())
+plt.xlabel('$ log_{10}(M) \;  [M_{\odot}] $')
+plt.ylabel('$ log_{10}(R_{BBH}) \; [Gyr^{-1]}$')
+cbar = plt.colorbar()
+cbar.set_label(' # systems with a given combination of M, R')
 plt.show()
 
-m1_m = np.mean(m1)
-m1_std = np.std(m1)
-m2_m = np.mean(m2)
-m2_std = np.std(m2)
+M_median = np.median(M)
+R_median = np.median(R)
 
-print('M1 : mean = ', m1_m, ' std = ', m1_std)
-print('M2 : mean = ', m2_m, ' std = ', m2_std)
+M_std = np.std(M)
+R_std = np.std(R)
+
+print('M : median = ', M_median,' , std = ', M_std, ' Msun ' )
+print('R : median = ', R_median,' , std = ', R_std, ' Gyr^-1 ' )
